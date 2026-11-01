@@ -3,35 +3,35 @@ import { Candidate, parseNewCandidate } from '../domain/Candidate';
 import { CandidateRepository } from '../ports/CandidateRepository';
 
 export type CandidateService = {
-  list: () => Candidate[];
-  getById: (id: number) => Candidate;
-  create: (input: unknown) => Candidate;
-  update: (id: number, input: unknown) => Candidate;
-  remove: (id: number) => void;
+  list: () => Promise<Candidate[]>;
+  getById: (id: number) => Promise<Candidate>;
+  create: (input: unknown) => Promise<Candidate>;
+  update: (id: number, input: unknown) => Promise<Candidate>;
+  remove: (id: number) => Promise<void>;
 };
 
 const CANDIDATE_NOT_FOUND = 'Candidato no encontrado';
 
 export const createCandidateService = (repository: CandidateRepository): CandidateService => {
-  const list = (): Candidate[] => repository.findAll();
+  const list = (): Promise<Candidate[]> => repository.findAll();
 
-  const getById = (id: number): Candidate => {
-    const candidate = repository.findById(id);
+  const getById = async (id: number): Promise<Candidate> => {
+    const candidate = await repository.findById(id);
     if (!candidate) throw new NotFoundError(CANDIDATE_NOT_FOUND);
     return candidate;
   };
 
-  const create = (input: unknown): Candidate => repository.save(parseNewCandidate(input));
+  const create = async (input: unknown): Promise<Candidate> => repository.save(parseNewCandidate(input));
 
-  const update = (id: number, input: unknown): Candidate => {
+  const update = async (id: number, input: unknown): Promise<Candidate> => {
     const data = parseNewCandidate(input);
-    const updated = repository.update(id, data);
+    const updated = await repository.update(id, data);
     if (!updated) throw new NotFoundError(CANDIDATE_NOT_FOUND);
     return updated;
   };
 
-  const remove = (id: number): void => {
-    if (!repository.remove(id)) throw new NotFoundError(CANDIDATE_NOT_FOUND);
+  const remove = async (id: number): Promise<void> => {
+    if (!(await repository.remove(id))) throw new NotFoundError(CANDIDATE_NOT_FOUND);
   };
 
   return { list, getById, create, update, remove };

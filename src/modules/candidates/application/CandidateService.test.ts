@@ -23,37 +23,37 @@ const newCandidate = {
 const buildService = () => createCandidateService(createInMemoryCandidateRepository([maria]));
 
 describe('CandidateService', () => {
-  it('lists candidates', () => {
-    expect(buildService().list()).toEqual([maria]);
+  it('lists candidates', async () => {
+    expect(await buildService().list()).toEqual([maria]);
   });
 
-  it('gets a candidate by id and throws NotFoundError when it does not exist', () => {
+  it('gets a candidate by id and throws NotFoundError when it does not exist', async () => {
     const service = buildService();
-    expect(service.getById(1)).toEqual(maria);
-    expect(() => service.getById(99)).toThrow(NotFoundError);
-    expect(() => service.getById(99)).toThrow('Candidato no encontrado');
+    expect(await service.getById(1)).toEqual(maria);
+    await expect(service.getById(99)).rejects.toThrow(NotFoundError);
+    await expect(service.getById(99)).rejects.toThrow('Candidato no encontrado');
   });
 
-  it('creates a valid candidate and rejects invalid data', () => {
+  it('creates a valid candidate and rejects invalid data', async () => {
     const service = buildService();
-    expect(service.create(newCandidate)).toEqual({ id: 2, ...newCandidate });
-    expect(() => service.create({ ...newCandidate, city: '' })).toThrow(DomainError);
+    expect(await service.create(newCandidate)).toEqual({ id: 2, ...newCandidate });
+    await expect(service.create({ ...newCandidate, city: '' })).rejects.toThrow(DomainError);
   });
 
-  it('updates a candidate and throws NotFoundError when it does not exist', () => {
+  it('updates a candidate and throws NotFoundError when it does not exist', async () => {
     const service = buildService();
-    expect(service.update(1, newCandidate)).toEqual({ id: 1, ...newCandidate });
-    expect(service.getById(1)).toEqual({ id: 1, ...newCandidate });
-    expect(() => service.update(99, newCandidate)).toThrow(NotFoundError);
-    expect(() => service.update(1, { ...newCandidate, email: 'invalido' })).toThrow(
+    expect(await service.update(1, newCandidate)).toEqual({ id: 1, ...newCandidate });
+    expect(await service.getById(1)).toEqual({ id: 1, ...newCandidate });
+    await expect(service.update(99, newCandidate)).rejects.toThrow(NotFoundError);
+    await expect(service.update(1, { ...newCandidate, email: 'invalido' })).rejects.toThrow(
       'El correo no tiene un formato válido',
     );
   });
 
-  it('removes a candidate and throws NotFoundError when it does not exist', () => {
+  it('removes a candidate and throws NotFoundError when it does not exist', async () => {
     const service = buildService();
-    service.remove(1);
-    expect(service.list()).toEqual([]);
-    expect(() => service.remove(1)).toThrow(NotFoundError);
+    await service.remove(1);
+    expect(await service.list()).toEqual([]);
+    await expect(service.remove(1)).rejects.toThrow(NotFoundError);
   });
 });
