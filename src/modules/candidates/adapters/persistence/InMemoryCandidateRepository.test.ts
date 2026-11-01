@@ -1,8 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { createInMemoryCandidateRepository } from './InMemoryCandidateRepository';
 
-const newCandidate = { name: 'María López', email: 'maria.lopez@correo.com', city: 'Quito', experienceYears: 3 };
-const otherCandidate = { name: 'Carlos Pérez', email: 'carlos.perez@correo.com', city: 'Cuenca', experienceYears: 5 };
+const newCandidate = {
+  name: 'María López',
+  email: 'maria.lopez@correo.com',
+  city: 'Quito',
+  experienceYears: 3,
+  skills: ['TypeScript', 'SQL'],
+};
+const otherCandidate = {
+  name: 'Carlos Pérez',
+  email: 'carlos.perez@correo.com',
+  city: 'Cuenca',
+  experienceYears: 5,
+  skills: [],
+};
 
 describe('InMemoryCandidateRepository', () => {
   it('saves a candidate and assigns an id', () => {
@@ -18,6 +30,7 @@ describe('InMemoryCandidateRepository', () => {
     const list = repository.findAll();
     list.pop();
     list[0].name = 'Modificado';
+    list[0].skills.push('Modificado');
     expect(repository.findAll()).toEqual([
       { id: 1, ...newCandidate },
       { id: 2, ...otherCandidate },

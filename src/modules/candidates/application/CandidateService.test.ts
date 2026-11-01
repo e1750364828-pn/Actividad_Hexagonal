@@ -4,8 +4,21 @@ import { NotFoundError } from '../../../shared/NotFoundError';
 import { createInMemoryCandidateRepository } from '../adapters/persistence/InMemoryCandidateRepository';
 import { createCandidateService } from './CandidateService';
 
-const maria = { id: 1, name: 'María López', email: 'maria.lopez@correo.com', city: 'Quito', experienceYears: 3 };
-const newCandidate = { name: 'Carlos Pérez', email: 'carlos.perez@correo.com', city: 'Cuenca', experienceYears: 5 };
+const maria = {
+  id: 1,
+  name: 'María López',
+  email: 'maria.lopez@correo.com',
+  city: 'Quito',
+  experienceYears: 3,
+  skills: ['TypeScript'],
+};
+const newCandidate = {
+  name: 'Carlos Pérez',
+  email: 'carlos.perez@correo.com',
+  city: 'Cuenca',
+  experienceYears: 5,
+  skills: ['SQL', 'Docker'],
+};
 
 const buildService = () => createCandidateService(createInMemoryCandidateRepository([maria]));
 

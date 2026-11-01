@@ -19,8 +19,22 @@ export const createApp = (): Express => {
   app.use('/vacancies', createVacancyRoutes(vacancyService));
 
   const candidateRepository = createInMemoryCandidateRepository([
-    { id: 1, name: 'María López', email: 'maria.lopez@correo.com', city: 'Quito', experienceYears: 3 },
-    { id: 2, name: 'Carlos Pérez', email: 'carlos.perez@correo.com', city: 'Guayaquil', experienceYears: 5 },
+    {
+      id: 1,
+      name: 'María López',
+      email: 'maria.lopez@correo.com',
+      city: 'Quito',
+      experienceYears: 3,
+      skills: ['TypeScript', 'Node.js'],
+    },
+    {
+      id: 2,
+      name: 'Carlos Pérez',
+      email: 'carlos.perez@correo.com',
+      city: 'Guayaquil',
+      experienceYears: 5,
+      skills: ['SQL'],
+    },
   ]);
   const candidateService = createCandidateService(candidateRepository);
   app.use('/candidates', createCandidateRoutes(candidateService));

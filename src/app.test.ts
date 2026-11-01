@@ -25,7 +25,13 @@ describe('Vacancies endpoints', () => {
 });
 
 describe('Candidates endpoints', () => {
-  const newCandidate = { name: 'Ana Torres', email: 'ana.torres@correo.com', city: 'Cuenca', experienceYears: 2 };
+  const newCandidate = {
+    name: 'Ana Torres',
+    email: 'ana.torres@correo.com',
+    city: 'Cuenca',
+    experienceYears: 2,
+    skills: ['TypeScript', 'SQL'],
+  };
 
   it('GET /candidates returns 200 with the list', async () => {
     const response = await request(createApp()).get('/candidates');
@@ -57,6 +63,10 @@ describe('Candidates endpoints', () => {
     const invalid = await request(app).post('/candidates').send({ ...newCandidate, email: 'ana.correo.com' });
     expect(invalid.status).toBe(400);
     expect(invalid.body).toEqual({ error: 'El correo no tiene un formato válido' });
+
+    const invalidSkills = await request(app).post('/candidates').send({ ...newCandidate, skills: 'SQL' });
+    expect(invalidSkills.status).toBe(400);
+    expect(invalidSkills.body).toEqual({ error: 'Las habilidades deben ser una lista de textos' });
   });
 
   it('PUT /candidates/:id returns 200, 400 with invalid data and 404 when missing', async () => {
