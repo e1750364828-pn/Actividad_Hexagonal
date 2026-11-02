@@ -1,6 +1,33 @@
 import request from 'supertest';
-import { describe, expect, it } from 'vitest';
-import { createApp } from './app';
+import { describe, expect, it, vi } from 'vitest';
+import { createApp, createCandidateRepository } from './app';
+
+describe('createCandidateRepository', () => {
+  it('uses the in-memory repository by default', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const repository = createCandidateRepository({});
+    expect(log).toHaveBeenCalledWith('Candidates persistence: in memory');
+    expect(await repository.findAll()).toHaveLength(2);
+    log.mockRestore();
+  });
+
+  it('falls back to memory when CANDIDATES_ADAPTER is sql but DATABASE_URL is missing', () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    createCandidateRepository({ CANDIDATES_ADAPTER: 'sql' });
+    expect(warn).toHaveBeenCalled();
+    expect(log).toHaveBeenCalledWith('Candidates persistence: in memory');
+    log.mockRestore();
+    warn.mockRestore();
+  });
+
+  it('uses PostgreSQL when CANDIDATES_ADAPTER is sql and DATABASE_URL exists', () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    createCandidateRepository({ CANDIDATES_ADAPTER: 'sql', DATABASE_URL: 'postgresql://user:pass@localhost:5432/db' });
+    expect(log).toHaveBeenCalledWith('Candidates persistence: PostgreSQL with pg');
+    log.mockRestore();
+  });
+});
 
 describe('Vacancies endpoints', () => {
   it('GET /vacancies returns 200 with the list', async () => {
