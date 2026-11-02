@@ -1,6 +1,33 @@
 import request from 'supertest';
-import { describe, expect, it } from 'vitest';
-import { createApp } from './app';
+import { describe, expect, it, vi } from 'vitest';
+import { createApp, createCandidateRepository } from './app';
+
+describe('createCandidateRepository', () => {
+  it('uses the in-memory repository by default', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const repository = createCandidateRepository({});
+    expect(log).toHaveBeenCalledWith('Candidates persistence: in memory');
+    expect(await repository.findAll()).toHaveLength(2);
+    log.mockRestore();
+  });
+
+  it('falls back to memory when CANDIDATES_ADAPTER is sql but DATABASE_URL is missing', () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    createCandidateRepository({ CANDIDATES_ADAPTER: 'sql' });
+    expect(warn).toHaveBeenCalled();
+    expect(log).toHaveBeenCalledWith('Candidates persistence: in memory');
+    log.mockRestore();
+    warn.mockRestore();
+  });
+
+  it('uses PostgreSQL when CANDIDATES_ADAPTER is sql and DATABASE_URL exists', () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    createCandidateRepository({ CANDIDATES_ADAPTER: 'sql', DATABASE_URL: 'postgresql://user:pass@localhost:5432/db' });
+    expect(log).toHaveBeenCalledWith('Candidates persistence: PostgreSQL with pg');
+    log.mockRestore();
+  });
+});
 
 describe('Vacancies endpoints', () => {
   it('GET /vacancies returns 200 with the list', async () => {
@@ -25,7 +52,13 @@ describe('Vacancies endpoints', () => {
 });
 
 describe('Candidates endpoints', () => {
-  const newCandidate = { name: 'Ana Torres', email: 'ana.torres@correo.com', city: 'Cuenca', experienceYears: 2 };
+  const newCandidate = {
+    name: 'Ana Torres',
+    email: 'ana.torres@correo.com',
+    city: 'Cuenca',
+    experienceYears: 2,
+    skills: ['TypeScript', 'SQL'],
+  };
 
   it('GET /candidates returns 200 with the list', async () => {
     const response = await request(createApp()).get('/candidates');
@@ -57,6 +90,10 @@ describe('Candidates endpoints', () => {
     const invalid = await request(app).post('/candidates').send({ ...newCandidate, email: 'ana.correo.com' });
     expect(invalid.status).toBe(400);
     expect(invalid.body).toEqual({ error: 'El correo no tiene un formato válido' });
+
+    const invalidSkills = await request(app).post('/candidates').send({ ...newCandidate, skills: 'SQL' });
+    expect(invalidSkills.status).toBe(400);
+    expect(invalidSkills.body).toEqual({ error: 'Las habilidades deben ser una lista de textos' });
   });
 
   it('PUT /candidates/:id returns 200, 400 with invalid data and 404 when missing', async () => {
